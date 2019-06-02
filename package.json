@@ -2,7 +2,7 @@
   "name": "linkshades",
   "version": "1.0.0",
   "description": "Cloud API to control link shades",
-  "main": "app.js",
+  "main": "linkshades.js",
   "directories": {
     "lib": "lib"
   },
