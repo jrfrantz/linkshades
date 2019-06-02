@@ -1,0 +1,25 @@
+{
+  "name": "linkshades",
+  "version": "1.0.0",
+  "description": "Cloud API to control link shades",
+  "main": "app.js",
+  "directories": {
+    "lib": "lib"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jrfrantz/linkshades.git"
+  },
+  "author": "jacob frantz",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/jrfrantz/linkshades/issues"
+  },
+  "homepage": "https://github.com/jrfrantz/linkshades#readme",
+  "dependencies": {
+    "socket.io-client": "0.9.16"
+  }
+}
