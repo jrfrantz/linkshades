@@ -16,13 +16,27 @@ var userID;
 var socket;
 var shades;
 var isLoggedIn = false;
+var callbacks = {};
 
 
-function Linkshades() {
+
+function Linkshades(username, password, callback) {
 	if (!(this instanceof Linkshades)) {
+		console.alert('not an instance of linkshades');
 		return new Linkshades();
 	}
-	console.log('hey');
+	if (username && password) {
+		console.log('have full data');
+		// do full sequential login
+		this.didConnectCallback = function() {
+			this.login(username, password);
+		};
+		this.didFinishLoginCallback = function() {
+			this.gatherShades();
+		};
+		this.didGatherShadesCallback = callback;
+	}
+
 	this.socket = io.connect(host, {
 		secure: true,
 		rejectUnauthorized: false,
@@ -32,20 +46,23 @@ function Linkshades() {
 	// set up callbacks
 	this.socket.on('connect', (function() {
 			console.log("Connected")
+			this.didConnectCallback();
 	}).bind(this));
 	this.socket.on('message', (function(message, userID) {
-		console.log(message);
 		if (message.msg == "success") {
 			this.userID = message.uID
 			this.isLoggedIn = true;
-			console.log('success');
+		} else {return new Error(message);}
+		if (this.didFinishLoginCallback) {
+			message.msg == 'success' ? this.didFinishLoginCallback() : this.didFinishLoginCallback(new Error("login failed"));
 		}
-		console.log('logged in?' + this.isLoggedIn);
 	}).bind(this));
 	this.socket.on('shades', (function(shades) {
 		console.log(shades);
-		// TODO iterate through array and populate chips data
 		this.shades = shades;
+		if (this.didGatherShadesCallback) {
+			this.didGatherShadesCallback();
+		}
 	}).bind(this));
 	this.socket.on('error', (function(data) {
 		console.log('error');
@@ -53,30 +70,40 @@ function Linkshades() {
 	}).bind(this));
 	this.socket.on('userData', (function(data) {
 		console.log(data);
+		console.log('userdata');
 	}).bind(this));
 }
 
-Linkshades.prototype.login = function(username, password) {
+
+
+// callback is an OPTIONAL fn called when request finishes
+Linkshades.prototype.login = function(username, password, callback) {
 	this.socket.emit('Login', username, password);
+	this.loginCallback = callback;
 }
 
-Linkshades.prototype.gatherDevices = function() {
+
+Linkshades.prototype.gatherDevices = function(callback) { //TODO does this do anything
 	this.socket.emit('requestData', 'getAllDevices', this.userID);
+	this.devicesCallback = callback;
 }
 
-Linkshades.prototype.gatherShades = function() {
+Linkshades.prototype.gatherShades = function(callback) {
 	this.socket.emit('requestData', 'getShades', this.userID);
+	this.devicesCallback = callback;
 }
 
-Linkshades.prototype.gatherSchedules = function() {
+Linkshades.prototype.gatherSchedules = function(callback) {
 	this.socket.emit('requestData', 'getSchedules', this.userID);
+	this.schedulesCallback = callback;
 }
 
-Linkshades.prototype.setShadeHeight = function(value) {
+Linkshades.prototype.setShadeHeightAll = function(value, callback) {
 	this.shades.forEach((function(shade) {
 		console.log("shade " + shade + ", value " + value);
 		this.socket.emit('sendCommand', {chipID: shade.chipID, command: value}, this.userID);
 	}).bind(this));
+	this.shadeCmdCallback = callback;
 }
 
 
