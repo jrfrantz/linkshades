@@ -28,12 +28,14 @@ function Linkshades(username, password, callback) {
 	if (username && password) {
 		console.log('have full data');
 		// do full sequential login
-		this.didConnectCallback = function() {
+		this.didConnectCallback = (function() {
+			console.log("in didConnectCallback, " + username);
 			this.login(username, password);
-		};
-		this.didFinishLoginCallback = function() {
+		}).bind(this);
+		this.didFinishLoginCallback = (function() {
+			console.log("in didFinishLoginCallback");
 			this.gatherShades();
-		};
+		}).bind(this);
 		this.didGatherShadesCallback = callback;
 	}
 
@@ -50,6 +52,7 @@ function Linkshades(username, password, callback) {
 	}).bind(this));
 	this.socket.on('message', (function(message, userID) {
 		if (message.msg == "success") {
+			console.log('success ' + message + userID);
 			this.userID = message.uID
 			this.isLoggedIn = true;
 		} else {return new Error(message);}
@@ -84,11 +87,13 @@ Linkshades.prototype.login = function(username, password, callback) {
 
 
 Linkshades.prototype.gatherDevices = function(callback) { //TODO does this do anything
+	console.log('gatheringDevices, userid is ' + this.userID);
 	this.socket.emit('requestData', 'getAllDevices', this.userID);
 	this.devicesCallback = callback;
 }
 
 Linkshades.prototype.gatherShades = function(callback) {
+	console.log('gatherShades');
 	this.socket.emit('requestData', 'getShades', this.userID);
 	this.devicesCallback = callback;
 }
@@ -99,6 +104,7 @@ Linkshades.prototype.gatherSchedules = function(callback) {
 }
 
 Linkshades.prototype.setShadeHeightAll = function(value, callback) {
+	console.log(shades);
 	this.shades.forEach((function(shade) {
 		console.log("shade " + shade + ", value " + value);
 		this.socket.emit('sendCommand', {chipID: shade.chipID, command: value}, this.userID);
