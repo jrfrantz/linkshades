@@ -63,8 +63,9 @@ function Linkshades(username, password, callback) {
 	this.socket.on('shades', (function(shades) {
 		console.log(shades);
 		this.shades = shades;
+		// broadcast state change 
 		if (this.didGatherShadesCallback) {
-			this.didGatherShadesCallback();
+			this.didGatherShadesCallback(null, shades[0].currentPosition);
 		}
 	}).bind(this));
 	this.socket.on('error', (function(data) {
@@ -112,5 +113,12 @@ Linkshades.prototype.setShadeHeightAll = function(value, callback) {
 	this.shadeCmdCallback = callback;
 }
 
+Linkshades.prototype.getShadeHeight = function() {
+	console.log("getshadeheight");
+	if (shades) {
+		return shades[0].currentPosition;
+	}
+	return undefined;
+}
 
 module.exports = Linkshades;
